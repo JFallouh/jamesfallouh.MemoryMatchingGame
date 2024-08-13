@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>James Fallouh Memory Matching Game</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom Fonts and Styles -->
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f3e5f5;
+            scroll-behavior: smooth;
+        }
+        .navbar {
+            background-color: #4a148c;
+        }
+        .navbar-brand {
+            color: #ffffff !important;
+            transition: color 0.3s ease;
+        }
+        .navbar-brand:hover {
+            color: #ffeb3b !important;
+        }
+        .nav-link {
+            color: #ffffff !important;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #ffeb3b !important;
+        }
+        .header {
+            background-color: #6a1b9a;
+            color: #ffffff;
+            padding: 50px 0;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+        .header h1:hover {
+            transform: scale(1.05);
+        }
+        .btn-primary, .btn-success {
+            background-color: #6a1b9a;
+            border-color: #6a1b9a;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .btn-primary:hover, .btn-success:hover {
+            background-color: #4a148c;
+            transform: scale(1.05);
+        }
+        .btn-download {
+            background-color: #8e24aa;
+            border-color: #8e24aa;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .btn-download:hover {
+            background-color: #7b1fa2;
+            transform: scale(1.05);
+        }
+        .highlight-link {
+            color: #d32f2f;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        .highlight-link:hover {
+            color: #b71c1c;
+            text-decoration: underline;
+        }
+        .memory-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        .memory-card {
+            width: 100px;
+            height: 100px;
+            background-color: #6a1b9a;
+            color: #ffffff;
+            font-size: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            position: relative;
+        }
+        .memory-card.flipped {
+            background-color: #4a148c;
+            transform: rotateY(180deg);
+        }
+        .memory-card.matched {
+            background-color: #7b1fa2;
+            pointer-events: none;
+        }
+        .memory-card-content {
+            position: absolute;
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+            transform: rotateY(0deg);
+        }
+        footer {
+            background-color: #4a148c;
+            color: #ffffff;
+            padding: 20px 0;
+            text-align: center;
+        }
+        footer p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <a class="navbar-brand" href="#">James Fallouh Memory Matching</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#footer">About Me</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#game">Memory Game</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#download-cv">Download CV</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#contact">Contact Me</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Welcome to James Fallouh Memory Matching Game</h1>
+        <p>Test your memory and explore more about me!</p>
+    </div>
+
+    <div class="container mt-5 pt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <!-- Memory Matching Game Section -->
+                <section id="game" class="my-5">
+                    <h2 class="text-center">Memory Matching Game</h2>
+                    <div class="memory-board" id="memoryBoard">
+                        <!-- Memory Cards will be dynamically created here -->
+                    </div>
+                    <p id="gameStatus" class="text-center font-weight-bold mt-4"></p>
+                    <button class="btn btn-primary btn-block mt-4" onclick="resetGame()">Reset Game</button>
+                </section>
+
+                <script>
+                    const cardsArray = ['A', 'B', 'C', 'D', 'A', 'B', 'C', 'D'];
+                    let firstCard = null;
+                    let secondCard = null;
+                    let matches = 0;
+
+                    function shuffle(array) {
+                        for (let i = array.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [array[i], array[j]] = [array[j], array[i]];
+                        }
+                    }
+
+                    function createBoard() {
+                        const board = document.getElementById('memoryBoard');
+                        board.innerHTML = '';
+                        shuffle(cardsArray);
+                        cardsArray.forEach((card, index) => {
+                            const cardElement = document.createElement('div');
+                            cardElement.classList.add('memory-card');
+                            cardElement.dataset.cardValue = card;
+                            cardElement.innerHTML = `<div class="memory-card-content">${card}</div>`;
+                            cardElement.addEventListener('click', () => flipCard(cardElement));
+                            board.appendChild(cardElement);
+                        });
+                    }
+
+                    function flipCard(card) {
+                        if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+                        card.classList.add('flipped');
+                        if (!firstCard) {
+                            firstCard = card;
+                        } else if (!secondCard) {
+                            secondCard = card;
+                            checkForMatch();
+                        }
+                    }
+
+                    function checkForMatch() {
+                        if (firstCard.dataset.cardValue === secondCard.dataset.cardValue) {
+                            firstCard.classList.add('matched');
+                            secondCard.classList.add('matched');
+                            matches += 1;
+                            resetSelections();
+                            if (matches === cardsArray.length / 2) {
+                                document.getElementById('gameStatus').innerHTML = 'You won!';
+                            }
+                        } else {
+                            setTimeout(() => {
+                                firstCard.classList.remove('flipped');
+                                secondCard.classList.remove('flipped');
+                                resetSelections();
+                            }, 1000);
+                        }
+                    }
+
+                    function resetSelections() {
+                        firstCard = null;
+                        secondCard = null;
+                    }
+
+                    function resetGame() {
+                        matches = 0;
+                        firstCard = null;
+                        secondCard = null;
+                        document.getElementById('gameStatus').innerHTML = '';
+                        createBoard();
+                    }
+
+                    // Initialize the game on page load
+                    document.addEventListener('DOMContentLoaded', createBoard);
+                </script>
+
+                <!-- Download CV Section -->
+                <section id="download-cv" class="text-center my-5">
+                    <h2>If you like this project, feel free to download my CV:</h2>
+                    <a href="cv.pdf" class="btn btn-download mt-3" download>Download My CV</a>
+                </section>
+
+                <!-- Contact Form Section -->
+                <section id="contact" class="bg-white p-4 shadow-sm rounded">
+                    <h2 class="text-center">Contact Me</h2>
+                    <form action="https://formspree.io/f/xdknzyvv" method="POST">
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" class="form-control" name="email" id="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message:</label>
+                            <textarea class="form-control" name="
+
+message" id="message" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Send</button>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5" id="footer">
+        <p>Created by James Fallouh</p>
+        <p><a href="https://jfallouh.github.io/JFallouh.github.my-CV/#english" class="highlight-link" target="_blank">Visit My Website</a></p>
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
